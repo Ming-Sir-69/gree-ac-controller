@@ -3,9 +3,10 @@
 ## 文件结构
 
 ```
-docker/
+gree-ac-controller/
 ├── docker-compose.yml   # Docker Compose 配置
 ├── Dockerfile           # Docker 镜像构建文件
+├── ac_final.py          # 主程序脚本
 └── README.md           # 本文件
 ```
 
@@ -22,7 +23,6 @@ docker/
 ### 方式二：命令行部署
 
 ```bash
-cd docker
 docker-compose up -d        # 启动
 docker-compose logs -f     # 查看日志
 docker-compose restart     # 重启
@@ -33,13 +33,13 @@ docker-compose down        # 停止
 
 ### 涂鸦 API 配置
 
-| 环境变量 | 默认值 | 说明 |
-|----------|--------|------|
-| CLIENT_ID | mqy8sanvm3yx8dv7q4xq | 涂鸦 API Key |
-| CLIENT_SECRET | a558001225fc4b1281b7484c66760ec1 | 涂鸦 API Secret |
-| DEVICE_ID | 6c7eeee4c7e180b5dbvfs8 | 红外遥控器设备 ID |
-| REMOTE_ID | 6ce0e08c7f2718711dbf6j | 空调遥控器 ID |
-| BASE_URL | https://openapi.tuyacn.com | 涂鸦 API 地址 |
+| 环境变量 | 说明 |
+|----------|------|
+| CLIENT_ID | 涂鸦 API Key（从涂鸦 IoT 平台获取） |
+| CLIENT_SECRET | 涂鸦 API Secret（从涂鸦 IoT 平台获取） |
+| DEVICE_ID | 红外遥控器设备 ID（从涂鸦 App 或平台获取） |
+| REMOTE_ID | 空调遥控器 ID（通过 API 获取） |
+| BASE_URL | 涂鸦 API 地址（默认：https://openapi.tuyacn.com） |
 
 ### 空调参数配置
 
@@ -56,26 +56,26 @@ docker-compose down        # 停止
 
 ### 制冷 24℃ 自动风速
 ```yaml
-TARGET_POWER: 1
-TARGET_MODE: 0
+TARGET_POWER: 开
+TARGET_MODE: 制冷
 TARGET_TEMP: 24
-TARGET_WIND: 0
+TARGET_WIND: 自动
 ```
 
 ### 制冷 26℃ 低速风
 ```yaml
-TARGET_POWER: 1
-TARGET_MODE: 0
+TARGET_POWER: 开
+TARGET_MODE: 制冷
 TARGET_TEMP: 26
-TARGET_WIND: 1
+TARGET_WIND: 低
 ```
 
 ### 制热 28℃ 中速风
 ```yaml
-TARGET_POWER: 1
-TARGET_MODE: 1
+TARGET_POWER: 开
+TARGET_MODE: 制热
 TARGET_TEMP: 28
-TARGET_WIND: 2
+TARGET_WIND: 中
 ```
 
 
