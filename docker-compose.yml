@@ -1,0 +1,27 @@
+services:
+  gree-ac-controller:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gree-ac-controller
+    restart: unless-stopped
+    environment:
+      # ===== 涂鸦 API 配置 =====
+      - CLIENT_ID=${CLIENT_ID:-YOUR_CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET:-YOUR_CLIENT_SECRET}
+      - DEVICE_ID=${DEVICE_ID:-YOUR_DEVICE_ID}
+      - REMOTE_ID=${REMOTE_ID:-YOUR_REMOTE_ID}
+      - BASE_URL=${BASE_URL:-https://openapi.tuyacn.com}
+
+      # ===== 空调参数配置（可在 Docker Compose UI 中下拉选择） =====
+      # 开关: on/off 或 开/关 或 1/0
+      - TARGET_POWER=${TARGET_POWER:-开}
+
+      # 模式: cool/heat/auto/fan/dry 或 制冷/制热/自动/送风/除湿
+      - TARGET_MODE=${TARGET_MODE:-制冷}
+
+      # 温度: 16-30
+      - TARGET_TEMP=${TARGET_TEMP:-24}
+
+      # 风速: auto/low/medium/high 或 自动/低/中/高
+      - TARGET_WIND=${TARGET_WIND:-自动}
