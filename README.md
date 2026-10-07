@@ -1,159 +1,62 @@
-# 格力空调 Docker 自动控制部署指南
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="readme-assets/header-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="readme-assets/header-light.svg">
+  <img alt="格力空调 · 云端控制配置 · ✦ EricMingle69" src="readme-assets/header-light.svg" width="100%">
+</picture>
 
-通过涂鸦云 API 调用红外空调控制器，并按既有作息规则调温或关机的 Python / Docker 项目。适合已经有相应设备与账号控制权限、需要理解现有定时逻辑的维护者。
+<p align="center">
+  <a href="README.md">简体中文</a> · <a href="README.en.md">English</a> · <a href="PERSONAL-NOTICE.md">✦ EricMingle69</a>
+</p>
 
-## 阅读与配置入口
+# 格力空调 · 云端控制配置
 
-- [ac_final.py](ac_final.py)：云 API 调用、固定作息、模式切换与定时循环。
-- [Dockerfile](Dockerfile)：Python 3.11 镜像与 `requests` 依赖。
-- [docker-compose.yml](docker-compose.yml)：容器、时区、日志与参数；当前通过本地 `.env` 注入凭据。
-- [.env.example](.env.example)：本地配置样式。真实账号与设备凭据不应进入版本库或问题反馈。
+通过涂鸦云 API 调用红外空调控制器的 Python / Docker 项目。
+程序按已有时段规则调温或关机，供具有设备与账号控制权限的维护者阅读和配置。
 
-## 当前实现与原说明的差异
+## 配置前先看实现
 
-当前源码与 Compose 使用 `TRIGGER_TIME=00:30`、`TRIGGER_WINDOW=2`、`FALLBACK_RATIO=1.3` 和 `OFF_CHECK_INTERVAL=30`。`TRIGGER_TIME` 是首选窗口，代码还包含超时补发与模式切换逻辑；关机检查按独立间隔处理。下方原 README 的 `01:00`、整点/半点触发、固定延迟与启动日志示例属于旧说明，不能直接当作当前执行保证。
+| 文件 | 用途 |
+| --- | --- |
+| [ac_final.py](ac_final.py) | 云 API、时段规则、模式切换与定时循环 |
+| [docker-compose.yml](docker-compose.yml) | 容器、时区、日志与环境参数 |
+| [Dockerfile](Dockerfile) | Python 3.11 与 requests 依赖 |
+| [.env.example](.env.example) | 本机配置样式 |
 
-此项目会发送真实设备控制指令，仅用于本人所有或已获明确授权控制的设备与账号。当前文件树未见仅模拟执行的独立入口；源码中的默认作息须按获授权的实际使用需要核对并适配后再启用。本次未创建 `.env`、运行容器、访问涂鸦服务或控制设备。
+使用本人所有或已获明确授权的设备与账号。
+当前没有独立的仅模拟入口；启动后会发送真实设备控制指令。
 
-## 贡献、署名与许可
+## 启动前检查
 
-欢迎通过 Issue / Pull Request 补充配置说明与兼容问题，附脱敏日志和源码版本。设备与账号仅限本人所有或已获授权的范围，默认作息需要按实际使用需要适配。
+1. 根据 `.env.example`准备本机 `.env`，填入自己的授权配置。
+2. 核对设备标识、涂鸦 API 权限、网络及配置的目标是否一致。
+3. 阅读 `get_mode()`中的作息安排，按实际授权用途适配。
+4. 检查时区、温度、模式、风速和触发参数后再启动。
 
-文档与导航维护：[Ming-Sir-69](https://github.com/Ming-Sir-69)。此署名仅表示文档维护身份，不授予设备或账号控制权限。当前文件树未发现 LICENSE/NOTICE，本页不新增开源或商用授权。
+真实凭据不进入仓库、截图或公开日志。
 
-## 原部署说明摘录
+## 已有命令行入口
 
-## 文件结构
-
+```sh
+docker-compose up -d
+docker-compose logs -f
+docker-compose down
 ```
-gree-ac-controller/
-├── docker-compose.yml   # Docker Compose 配置
-├── Dockerfile           # Docker 镜像构建文件
-├── ac_final.py          # 主程序脚本
-└── README.md            # 本文件
-```
 
-## 功能概述
+日志用于核对配置及 API 响应，不代表设备已经实际执行。
 
-程序按 `ac_final.py` 中的时段规则选择温度档位或发送关机指令，支持预冷、饭后、日常和睡眠档位。温度、模式、风速及触发窗口、检查间隔由对应配置控制，实际支持范围以当前源码为准。
+## 当前调度参数
 
-时段规则目前写在 `get_mode()` 中，默认作息需要按本人或获授权设备的实际使用需要核对并适配。调温包含窗口触发和兜底补发，关机按独立间隔检查；这些机制不构成设备执行成功或固定响应延迟的保证。
+`TRIGGER_TIME=00:30`采用 `MM:SS`，分钟按 5 取模，是每五分钟周期的首选窗口，不是午夜时刻。
+`TRIGGER_WINDOW=2`提供秒级容差，`FALLBACK_RATIO=1.3`定义超时补发倍率。
+`OFF_CHECK_INTERVAL=30`单位为分钟，关机按独立间隔检查；模式切换还可触发即时处理。
+这些机制不保证固定响应延迟，旧 `01:00`说明不能代替当前配置。
+
+## 许可与权限
+
+当前没有覆盖原代码的 LICENSE/NOTICE；复用范围需确认。
+个人文档维护身份不授予账号或设备控制权，设备操作权限与代码许可分别判断。
 
 ---
 
-## 快速部署
-
-### 方式一：Docker Compose UI（推荐）
-
-在飞牛 NAS 的 Docker Compose 界面中：
-
-1. 上传或选择项目目录中的 `docker-compose.yml`
-2. 在环境变量配置区域按需修改参数
-3. 勾选"创建项目后立即启动"，点击确认
-
-### 方式二：命令行部署
-
-```bash
-docker-compose up -d        # 后台启动
-docker-compose logs -f      # 实时查看日志
-docker-compose restart      # 重启容器
-docker-compose down         # 停止并移除容器
-```
-
----
-
-## 参数配置说明
-
-### Tuya API 凭证
-
-| 环境变量 | 说明 |
-|----------|------|
-| `CLIENT_ID` | 涂鸦平台 API Key |
-| `CLIENT_SECRET` | 涂鸦平台 API Secret |
-| `DEVICE_ID` | 红外遥控器设备 ID |
-| `REMOTE_ID` | 空调遥控器 ID |
-| `BASE_URL` | 涂鸦 API 地址（默认 https://openapi.tuyacn.com） |
-
-### 触发时机
-
-| 环境变量 | 默认值 | 格式说明 |
-|----------|--------|----------|
-| `TRIGGER_TIME` | `01:00` | `MM:SS`，MM 自动取 %5<br>例：`01:00` → 每小时 01:00/06:00/11:00... 发出指令<br>加上 API 延迟，空调实际响应约在 01:30 |
-
-### 各档位参数
-
-| 环境变量 | 默认值 | 说明 |
-|----------|--------|------|
-| `PRECOOL_TEMP` | `20` | 预冷档温度（°C） |
-| `PRECOOL_MODE` | `制冷` | 预冷档模式 |
-| `PRECOOL_WIND` | `中` | 预冷档风速 |
-| `NORMAL_TEMP` | `24` | 日常档温度（°C） |
-| `NORMAL_MODE` | `制冷` | 日常档模式 |
-| `NORMAL_WIND` | `小` | 日常档风速 |
-| `AFTER_MEAL_TEMP` | `22` | 饭后档温度（°C） |
-| `AFTER_MEAL_MODE` | `制冷` | 饭后档模式 |
-| `AFTER_MEAL_WIND` | `小` | 饭后档风速 |
-| `SLEEP_TEMP` | `25` | 睡眠档温度（°C） |
-| `SLEEP_MODE` | `制冷` | 睡眠档模式 |
-| `SLEEP_WIND` | `小` | 睡眠档风速 |
-
-### 参数可选值
-
-| 参数类型 | 可填写的值 |
-|----------|-----------|
-| **温度** | `16` ~ `30`（整数） |
-| **模式** | `制冷` / `制热` / `自动` / `送风` / `除湿` |
-| | `cool` / `heat` / `auto` / `fan` / `dry` |
-| | `0` / `1` / `2` / `3` / `4` |
-| **风速** | `自动` / `小` / `中` / `大` |
-| | `auto` / `low` / `medium` / `high` |
-| | `0` / `1` / `2` / `3` |
-
-> 所有文字输入忽略大小写，`制冷`、`cool`、`Cool`、`COOL`、`0` 效果完全相同。
-
----
-
-## 查看运行日志
-
-```bash
-# 实时查看日志
-docker logs -f gree-ac-controller
-
-# 查看最近 100 行
-docker logs --tail 100 gree-ac-controller
-```
-
-容器启动时会在日志中打印当前所有档位的参数配置，可用于确认环境变量是否生效：
-
-```
-============================================================
-格力空调控制器启动
-调温触发：每小时 X1:00 触发（含延迟后约响应+30~40s）
-关机触发：整点/半点 :00
-------------------------------------------------------------
-预冷档  → 20°C | 制冷 | 中风
-日常档  → 24°C | 制冷 | 小风
-饭后档  → 22°C | 制冷 | 小风
-睡眠档  → 25°C | 制冷 | 小风
-============================================================
-```
-
----
-
-## 故障排查
-
-**1. 容器启动后立即退出**
-```bash
-docker logs gree-ac-controller
-```
-查看报错信息，常见原因：`TRIGGER_TIME` 格式错误（应为 `MM:SS`）。
-
-**2. API 调用失败 / Token 获取失败**
-- 检查 `CLIENT_ID` 和 `CLIENT_SECRET` 是否正确
-- 确认涂鸦开发者平台已开通红外空调控制 API 权限
-- 检查容器网络能否访问 `openapi.tuyacn.com`
-
-**3. 空调没有按预期动作**
-- 查看日志确认触发时刻是否正确执行
-- 检查对应时段的环境变量是否配置正确
-- 确认 `DEVICE_ID` 和 `REMOTE_ID` 与实际设备匹配
+文档维护：**✦ EricMingle69** · [Ming-Sir-69](https://github.com/Ming-Sir-69)  
+[个人标识、许可与权限说明](PERSONAL-NOTICE.md) · 明暗页眉随 GitHub 主题自动切换。
